@@ -1,3 +1,8 @@
+body { 
+    margin: 0; 
+    overflow: hidden; 
+}
+
 #brujula {
     width: 200px;
     height: 200px;

@@ -4,11 +4,11 @@
 <title>Navas del Rey</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-<style>
-    body { margin: 0; overflow: hidden; }
-</style>
 <script src="js/jquery-2.1.4.js"></script> 
 <script src="js/bootstrap.min.js"></script>
+<script src="threejs/three.min.js"></script>
+<script src="threejs/OrbitControls.js"></script> 
+<script src="threejs/TerrainLoader.js"></script> 
 <link rel="stylesheet" type="text/css" href="css/bootstrap.css"> 
 <link rel="stylesheet" type="text/css" href="css/main.css"> 
 </head>
@@ -32,9 +32,8 @@
 </nav>
 <div id="webgl"></div>
 <div id="brujula"></div>
-<script src="threejs/three.min.js"></script>
-<script src="threejs/OrbitControls.js"></script> 
-<script src="threejs/TerrainLoader.js"></script> 
+
+
 <script id="fragment_shh" type="x-shader/x-fragment">
 			#ifdef GL_ES
 			precision highp float;
@@ -68,43 +67,49 @@
 			}
 			
 </script>
+
+
 <script>
 
     var width  = window.innerWidth,
         height = window.innerHeight,
+        mdt = 'images/mdt12k.bin',
+	pnoa = 'images/pnoa12kvisor.jpg',
+        plane_size = 300,
+        plane_res = 299,
+	plane_height = 110,
         brujula_width = 200,
         brujula_height = 200,
         mouse = new THREE.Vector3(),
+        plane = new THREE.Mesh(),
+	scene = new THREE.Scene(),
+	luz = new THREE.AmbientLight(0xeeeeee),
+	camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000),
+	renderer = new THREE.WebGLRenderer(),
+	line = new THREE.Line();
+	lastPoint = null;
         count=0;
         
-    var scene = new THREE.Scene();
-    scene.add(new THREE.AmbientLight(0xeeeeee));
-
-    var camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    scene.add( luz );
     camera.position.set(0, -90, 140);
-
-    var renderer = new THREE.WebGLRenderer();
     renderer.setSize(width, height);
     document.getElementById('webgl').appendChild(renderer.domElement);
     
     var terrainLoader = new THREE.TerrainLoader();
-    terrainLoader.load('images/mdt12k.bin', function(data) {
+    terrainLoader.load(mdt, function(data) {
 
         var vertShader = document.getElementById('vertex_shh').innerHTML;
         var fragShader = document.getElementById('fragment_shh').innerHTML;
 
-        var attributes = {}; // custom attributes
-
         var uniforms = {    // custom uniforms (your textures)
 
             tOne: { type: "t", value: "" },
-            tSec: { type: "t", value: THREE.ImageUtils.loadTexture( "images/pnoa12kvisor.jpg" ) }
+            tSec: { type: "t", value: THREE.ImageUtils.loadTexture( pnoa ) }
 
         };
         var material_shh = new THREE.ShaderMaterial({
 
             uniforms: uniforms,
-            attributes: attributes,
             vertexShader: vertShader,
             fragmentShader: fragShader
         });
@@ -117,13 +122,12 @@
         queryMarker.visible = false;
         scene.add(queryMarker);
         
-        var geometry = new THREE.PlaneGeometry(300, 300, 299, 299);
+        var geometry = new THREE.PlaneGeometry(plane_size, plane_size, plane_res, plane_res);
         
         for (var i = 0, l = geometry.vertices.length; i < l; i++) {
-            geometry.vertices[i].z = data[i] / 65535 * 110;
+            geometry.vertices[i].z = data[i] / 65535 * plane_height;
         }
-        var plane = new THREE.Mesh(geometry, material_shh);
-        plane.name = 'plano';
+        plane = new THREE.Mesh(geometry, material_shh);
         scene.add(plane);
         $( "#E2" ).click(function() {
             material_shh.uniforms["tOne"].value = THREE.ImageUtils.loadTexture( "images/e3.png" );
@@ -136,62 +140,9 @@
         });
     });
     
-    // GEOMETRIA DE LA LINEA
-	var geometryLine = new THREE.BufferGeometry();
-
-	// ATRIBUTOS DE LA LINEA
-	var positions = new Float32Array( 500 * 3 ); // 3 vertices per point
-	geometryLine.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
-    
-    var material = new THREE.LineBasicMaterial( { color: 0xff0000, linewidth: 4 } );
-
-	// LINEA
-	line = new THREE.Line( geometryLine,  material );
-	scene.add( line );
-    
-    var mousePosition = new THREE.Vector2(),
-    canvas = renderer.domElement,
+    var canvas = renderer.domElement,
     canvasPosition = $(canvas).position;
     
-    function updateLine(i,r) {
-		positions[ count * 3 -3 ] = i.point.x - .4*r.ray.direction.x;
-		positions[ count * 3 -2 ] = i.point.y - .4*r.ray.direction.y;
-		positions[ count * 3 -1 ] = i.point.z - .4*r.ray.direction.z;
-        line.geometry.attributes.position.needsUpdate = true;
-
-		}
-
-    function addPoint(i,r){
-        positions[count * 3] = i.point.x - .4*r.ray.direction.x;
-        positions[count * 3 + 1 ] = i.point.y - .4*r.ray.direction.y;
-        positions[count * 3 + 2 ] = i.point.z - .4*r.ray.direction.z;
-        count++;
-        line.geometry.setDrawRange( 0, count );
-        updateLine(i,r);
-    }
-    
-
-    function canvasClicked(e) {
-            e.preventDefault();
-            
-            if ( e.target == canvas ) {
-
-            mousePosition.x = ((e.clientX - renderer.domElement.offsetLeft) / window.innerWidth) * 2 - 1;
-            mousePosition.y = -((e.clientY - renderer.domElement.offsetTop) / window.innerHeight) * 2 + 1;
-            var vector = new THREE.Vector3(mousePosition.x, mousePosition.y, 1);
-            vector.unproject(camera);
-            var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());            
-
-            console.log(ray); 
-            var intersects = ray.intersectObject(scene.getObjectByName('plano'));
-
-            queryMarker.position.set(intersects[0].point.x,intersects[0].point.y,intersects[0].point.z);
-            queryMarker.visible = true;
-            queryMarker.updateMatrixWorld();
-        }
-    };
-                        
-
     var controls = new THREE.OrbitControls(camera); 
 
         // BRUJULA
