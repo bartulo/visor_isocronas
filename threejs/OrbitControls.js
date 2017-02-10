@@ -53,7 +53,6 @@ Q3D.Controls = {
 
 };
 
-
 THREE.OrbitControls = function ( object, domElement ) {
 
 	this.object = object;
@@ -426,18 +425,14 @@ THREE.OrbitControls = function ( object, domElement ) {
 	function onMouseDown( event ) {
         if ($('#pintar').attr('aria-pressed') == 'true' ) {
             if (event.target == canvas ) { 
-            console.log(event.target);
-            mousePosition.x = ((event.clientX - renderer.domElement.offsetLeft) / window.innerWidth) * 2 - 1;
-            mousePosition.y = -((event.clientY - renderer.domElement.offsetTop) / window.innerHeight) * 2 + 1;
-            var vector = new THREE.Vector3(mousePosition.x, mousePosition.y, 1);
+            mouseDownPoint.x = ((event.clientX - renderer.domElement.offsetLeft) / window.innerWidth) * 2 - 1;
+            mouseDownPoint.y = -((event.clientY - renderer.domElement.offsetTop) / window.innerHeight) * 2 + 1;
+            var vector = new THREE.Vector3(mouseDownPoint.x, mouseDownPoint.y, 1);
             vector.unproject(camera);
             var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-            var intersects = ray.intersectObject(scene.getObjectByName('plano'));
-                // on first click add an extra point
-                if( count === 0 ){
-                    addPoint(intersects[0],ray);
-                }
-                addPoint(intersects[0],ray);
+            var intersects = ray.intersectObject( plane );
+	    lastPoint = intersects[0].point;
+	    lastPoint.z = lastPoint.z + .2;
             } else { console.log('hola'); }
         
         } else {
@@ -505,15 +500,27 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 			if ( event.target == canvas ) {
         
-            			mousePosition.x = ((event.clientX - renderer.domElement.offsetLeft) / window.innerWidth) * 2 - 1;
-            			mousePosition.y = -((event.clientY - renderer.domElement.offsetTop) / window.innerHeight) * 2 + 1;
-            			var vector = new THREE.Vector3(mousePosition.x, mousePosition.y, 1);
+			if (lastPoint) {
+            			mouseDownPoint.x = ((event.clientX - renderer.domElement.offsetLeft) / window.innerWidth) * 2 - 1;
+            			mouseDownPoint.y = -((event.clientY - renderer.domElement.offsetTop) / window.innerHeight) * 2 + 1;
+            			var vector = new THREE.Vector3(mouseDownPoint.x, mouseDownPoint.y, 1);
             			vector.unproject(camera);
             			var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-            			var intersects = ray.intersectObject(scene.getObjectByName('plano'));
-            			console.log(ray.ray.direction.x)
-            
-            			addPoint(intersects[0],ray);
+            			var intersects = ray.intersectObject( plane);
+            			var pos = intersects[0].point;
+            			pos.z = pos.z + .2;
+				var material = new THREE.LineBasicMaterial({
+					color: 0x0000ff,
+					linewidth: 4
+				});
+				var geometry = new THREE.Geometry();
+				geometry.vertices.push(lastPoint);
+				geometry.vertices.push(pos);
+				console.log(lastPoint,pos);
+				var line = new THREE.Line(geometry, material);
+				scene.add(line);
+				lastPoint = pos;
+            		}
         
 			}
 		} else if ( state === STATE.DOLLY ) {
@@ -564,8 +571,11 @@ THREE.OrbitControls = function ( object, domElement ) {
 		mouseUpPoint.set( event.clientX, event.clientY );
 		if ( event.button == 0 && mouseDownPoint.equals( mouseUpPoint ) ) {
 
-            canvasClicked( event );
+            console.log( 'Aquí va la funcion canvasClicked para futuras aplicaciones' );
 
+		}
+        	if ($('#pintar').attr('aria-pressed') == 'true' ) {
+			lastPoint = null;
 		}
 
 	}
@@ -708,13 +718,6 @@ THREE.OrbitControls = function ( object, domElement ) {
 	function touchstart( event ) {
     
 		if ( scope.enabled === false ) return;
-
-        if ($('#pintar').attr('aria-pressed') == 'true' ) {
-
-            state = STATE.PINTAR;
-            return;
-            }
-
 
 		switch ( event.touches.length ) {
 
