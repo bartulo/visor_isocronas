@@ -105,7 +105,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 	this.noKeys = false;
 
 	// The four arrow keys and additional keys
-	this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40, AUTOROTATE: 82, UPSIDEDOWN: 85 };
+	this.keys = { LEFT: 37, UP: 38, RIGHT: 39, BOTTOM: 40, AUTOROTATE: 82, UPSIDEDOWN: 85, ERASE: 66, CLEAR: 67 };
 
 	////////////
 	// internals
@@ -423,17 +423,29 @@ THREE.OrbitControls = function ( object, domElement ) {
 	}
 
 	function onMouseDown( event ) {
-        if ($('#pintar').attr('aria-pressed') == 'true' ) {
-            if (event.target == canvas ) { 
-            mouseDownPoint.x = ((event.clientX - renderer.domElement.offsetLeft) / window.innerWidth) * 2 - 1;
-            mouseDownPoint.y = -((event.clientY - renderer.domElement.offsetTop) / window.innerHeight) * 2 + 1;
-            var vector = new THREE.Vector3(mouseDownPoint.x, mouseDownPoint.y, 1);
-            vector.unproject(camera);
-            var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
-            var intersects = ray.intersectObject( plane );
-	    lastPoint = intersects[0].point;
-	    lastPoint.z = lastPoint.z + .2;
-            } else { console.log('hola'); }
+		if ($('#pintar').attr('aria-pressed') == 'true' ) {
+			if (event.target == canvas ) { 
+				mouseDownPoint.x = ((event.clientX - renderer.domElement.offsetLeft) / window.innerWidth) * 2 - 1;
+				mouseDownPoint.y = -((event.clientY - renderer.domElement.offsetTop) / window.innerHeight) * 2 + 1;
+				var vector = new THREE.Vector3(mouseDownPoint.x, mouseDownPoint.y, 1);
+				vector.unproject(camera);
+				var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+				var intersects = ray.intersectObject( plane );
+
+				var geometryLine = new THREE.BufferGeometry();
+				positions = new Float32Array( 500 * 3 );
+				geometryLine.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
+				
+				var material = new THREE.LineBasicMaterial({
+					color: 0x0000ff,
+					linewidth: 4
+				});
+				var line = new THREE.Line(geometryLine, material);
+				lines.push(line);
+				addPoint(intersects[0]);
+
+				scene.add(line);
+            } else { console.log(event.target); }
         
         } else {
 
@@ -473,8 +485,6 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 	function onMouseMove( event ) {
         
-        console.log(scope.enabled);
-
 		if ( scope.enabled === false ) return;
 
 		event.preventDefault();
@@ -500,27 +510,14 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 			if ( event.target == canvas ) {
         
-			if (lastPoint) {
             			mouseDownPoint.x = ((event.clientX - renderer.domElement.offsetLeft) / window.innerWidth) * 2 - 1;
             			mouseDownPoint.y = -((event.clientY - renderer.domElement.offsetTop) / window.innerHeight) * 2 + 1;
             			var vector = new THREE.Vector3(mouseDownPoint.x, mouseDownPoint.y, 1);
             			vector.unproject(camera);
             			var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
             			var intersects = ray.intersectObject( plane);
-            			var pos = intersects[0].point;
-            			pos.z = pos.z + .2;
-				var material = new THREE.LineBasicMaterial({
-					color: 0x0000ff,
-					linewidth: 4
-				});
-				var geometry = new THREE.Geometry();
-				geometry.vertices.push(lastPoint);
-				geometry.vertices.push(pos);
-				console.log(lastPoint,pos);
-				var line = new THREE.Line(geometry, material);
-				scene.add(line);
-				lastPoint = pos;
-            		}
+				addPoint(intersects[0]);
+
         
 			}
 		} else if ( state === STATE.DOLLY ) {
@@ -575,7 +572,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 		}
         	if ($('#pintar').attr('aria-pressed') == 'true' ) {
-			lastPoint = null;
+			count = 0;
 		}
 
 	}
@@ -696,6 +693,14 @@ THREE.OrbitControls = function ( object, domElement ) {
 
 				case scope.keys.AUTOROTATE:
 					scope.autoRotate = !scope.autoRotate;
+					break;
+
+				case scope.keys.ERASE:
+					eraser();
+					break;
+
+				case scope.keys.CLEAR:
+					clearer();
 					break;
 
 				case scope.keys.UPSIDEDOWN:

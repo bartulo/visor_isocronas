@@ -26,6 +26,8 @@
           </ul>
         </li>
         <li><button type="button" class="btn btn-success" data-toggle="button" id="pintar">Pintar</button></li>
+        <li><button type="button" class="btn btn-warning" data-toggle="button" id="erase">Borrar</button></li>
+        <li><button type="button" class="btn btn-danger" data-toggle="button" id="clear">Limpiar</button></li>
       </ul>
     </div>
     </div>
@@ -86,9 +88,13 @@
 	luz = new THREE.AmbientLight(0xeeeeee),
 	camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000),
 	renderer = new THREE.WebGLRenderer(),
-	line = new THREE.Line();
-	lastPoint = null;
+	line = new THREE.Line(),
+        canvas = renderer.domElement,
+        canvasPosition = $(canvas).position,
+        menu = $('#erase')[0],
+	lines = [],
         count=0;
+        positions = new Float32Array();
         
     scene.add( luz );
     camera.position.set(0, -90, 140);
@@ -140,9 +146,36 @@
         });
     });
     
-    var canvas = renderer.domElement,
-    canvasPosition = $(canvas).position;
-    
+    function updateLine(i) {
+        positions[ count *3 - 3 ] = i.point.x;
+        positions[ count *3 - 2 ] = i.point.y;
+        positions[ count *3 - 1 ] = i.point.z + .2;
+        console.log(positions[ count * 3 - 3 ] - positions[ count * 3 - 6 ]);
+        lines[lines.length-1].geometry.attributes.position.needsUpdate = true;
+    }
+
+    function addPoint(i) {
+        count++;
+        lines[lines.length-1].geometry.setDrawRange( 0, count );
+        updateLine(i);
+    }
+
+    $( "#erase" ).click(function() {eraser();});
+    $( "#clear" ).click(function() {clearer();});
+
+    function eraser() {
+        scene.remove(lines[lines.length-1]);
+        lines.splice((lines.length-1), 1);
+    }
+
+    function clearer() {
+      arrayLength = lines.length
+      for (var n=0; n<arrayLength; n++) {
+        scene.remove(lines[lines.length-1]);
+        lines.splice((lines.length-1), 1);
+      }
+    }
+
     var controls = new THREE.OrbitControls(camera); 
 
         // BRUJULA
