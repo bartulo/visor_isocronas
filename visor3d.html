@@ -9,8 +9,10 @@
 <script src="threejs/three.min.js"></script>
 <script src="threejs/OrbitControls.js"></script> 
 <script src="threejs/TerrainLoader.js"></script> 
+<script src="dat/dat.gui.js"></script> 
 <link rel="stylesheet" type="text/css" href="css/bootstrap.css"> 
 <link rel="stylesheet" type="text/css" href="css/main.css"> 
+<link rel="stylesheet" type="text/css" href="css/dat.gui.css"> 
 </head>
 <body>
 <nav class="navbar navbar-default">
@@ -91,9 +93,10 @@
 	line = new THREE.Line(),
         canvas = renderer.domElement,
         canvasPosition = $(canvas).position,
-        menu = $('#erase')[0],
 	lines = [],
-        count=0;
+        count = 0,
+        params = {color: "#1861b3" },
+        gui = new dat.GUI(),
         positions = new Float32Array();
         
     scene.add( luz );
@@ -158,15 +161,20 @@
         count++;
         lines[lines.length-1].geometry.setDrawRange( 0, count );
         updateLine(i);
-    }
+    };
+
+    function updateColor() {
+        console.log( params.color );
+    };
 
     $( "#erase" ).click(function() {eraser();});
     $( "#clear" ).click(function() {clearer();});
+    gui.addColor(params, 'color').onChange(updateColor);
 
     function eraser() {
         scene.remove(lines[lines.length-1]);
         lines.splice((lines.length-1), 1);
-    }
+    };
 
     function clearer() {
       arrayLength = lines.length
@@ -195,9 +203,9 @@
     loader.load( 'flecha.json', addModel );
     
     function addModel( geometry, materials ) {
-        var material = new THREE.MeshBasicMaterial( { color: 0x990000 } );
+        var material = new THREE.MeshFaceMaterial( materials );
         model = new THREE.Mesh( geometry, material );
-        model.scale.set(8,8,8);
+        model.scale.set(50,50,50);
         model.position.set(0,0,0);
         scene2.add( model );
     }

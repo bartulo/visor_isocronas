@@ -437,7 +437,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 				geometryLine.addAttribute( 'position', new THREE.BufferAttribute( positions, 3 ) );
 				
 				var material = new THREE.LineBasicMaterial({
-					color: 0x0000ff,
+					color: params.color,
 					linewidth: 4
 				});
 				var line = new THREE.Line(geometryLine, material);
