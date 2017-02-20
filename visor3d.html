@@ -22,9 +22,9 @@
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Perímetros<span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a id="E2" href="#">E3</a></li>
-            <li><a id="E3" href="#">E5</a></li>
-            <li><a id="E4" href="#">E7</a></li>
+            <li><a id="E0" href="#">E0</a></li>
+            <li><a id="E3" href="#">E3</a></li>
+            <li><a id="E7" href="#">E7</a></li>
           </ul>
         </li>
         <li><button type="button" class="btn btn-success" data-toggle="button" id="pintar">Pintar</button></li>
@@ -77,11 +77,11 @@
 
     var width  = window.innerWidth,
         height = window.innerHeight,
-        mdt = 'images/mdt12k.bin',
-	pnoa = 'images/pnoa12kvisor.jpg',
-        plane_size = 300,
-        plane_res = 299,
-	plane_height = 110,
+        mdt = 'images/mdt10k.bin',
+	pnoa = 'images/pnoa_4096.jpg',
+        plane_size = 500,
+        plane_res = 499,
+	plane_height = 160,
         brujula_width = 200,
         brujula_height = 200,
         plane = new THREE.Mesh(),
@@ -94,7 +94,7 @@
         canvasPosition = $(canvas).position,
 	lines = [],
         count = 0,
-        parametros = {color: "#1861b3" },
+        params = {color: "#1861b3" },
         gui = new dat.gui.GUI(),
         positions = new Float32Array();
         
@@ -137,14 +137,14 @@
         }
         plane = new THREE.Mesh(geometry, material_shh);
         scene.add(plane);
-        $( "#E2" ).click(function() {
-            material_shh.uniforms["tOne"].value = THREE.ImageUtils.loadTexture( "images/e3.png" );
+        $( "#E0" ).click(function() {
+            material_shh.uniforms["tOne"].value = "";
         });
         $( "#E3" ).click(function() {
-            material_shh.uniforms["tOne"].value = THREE.ImageUtils.loadTexture( "images/e5.png" );
+            material_shh.uniforms["tOne"].value = THREE.ImageUtils.loadTexture( "images/visor_E3.png" );
         });
-        $( "#E4" ).click(function() {
-            material_shh.uniforms["tOne"].value = THREE.ImageUtils.loadTexture( "images/e7.png" );
+        $( "#E7" ).click(function() {
+            material_shh.uniforms["tOne"].value = THREE.ImageUtils.loadTexture( "images/visor_E7.png" );
         });
     });
     
