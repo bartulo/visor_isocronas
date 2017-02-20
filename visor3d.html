@@ -84,7 +84,6 @@
 	plane_height = 110,
         brujula_width = 200,
         brujula_height = 200,
-        mouse = new THREE.Vector3(),
         plane = new THREE.Mesh(),
 	scene = new THREE.Scene(),
 	luz = new THREE.AmbientLight(0xeeeeee),
@@ -95,8 +94,8 @@
         canvasPosition = $(canvas).position,
 	lines = [],
         count = 0,
-        params = {color: "#1861b3" },
-        gui = new dat.GUI(),
+        parametros = {color: "#1861b3" },
+        gui = new dat.gui.GUI(),
         positions = new Float32Array();
         
     scene.add( luz );
@@ -153,7 +152,6 @@
         positions[ count *3 - 3 ] = i.point.x;
         positions[ count *3 - 2 ] = i.point.y;
         positions[ count *3 - 1 ] = i.point.z + .2;
-        console.log(positions[ count * 3 - 3 ] - positions[ count * 3 - 6 ]);
         lines[lines.length-1].geometry.attributes.position.needsUpdate = true;
     }
 
