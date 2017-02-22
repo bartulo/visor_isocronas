@@ -185,7 +185,7 @@
       }
     }
 
-    var spriteMap = new THREE.TextureLoader().load("images/icono.jpg");
+    var spriteMap = new THREE.TextureLoader().load("images/icono_grande.jpg");
     var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
     var sprite = new THREE.Sprite( spriteMaterial);
     scene.add( sprite );
@@ -201,7 +201,7 @@
             var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());            
             console.log(ray); 
             var intersects = ray.intersectObject(plane);
-            sprite.position.set(intersects[0].point.x,intersects[0].point.y,intersects[0].point.z);
+            sprite.position.set(intersects[0].point.x,intersects[0].point.y,intersects[0].point.z + 1);
             sprite.visible = true;
             sprite.updateMatrixWorld();
         }
