@@ -568,7 +568,7 @@ THREE.OrbitControls = function ( object, domElement ) {
 		mouseUpPoint.set( event.clientX, event.clientY );
 		if ( event.button == 0 && mouseDownPoint.equals( mouseUpPoint ) ) {
 
-            console.log( 'Aquí va la funcion canvasClicked para futuras aplicaciones' );
+            canvasClicked( event );
 
 		}
         	if ($('#pintar').attr('aria-pressed') == 'true' ) {

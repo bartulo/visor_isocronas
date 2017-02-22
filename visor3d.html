@@ -85,6 +85,7 @@
         brujula_width = 200,
         brujula_height = 200,
         mouse = new THREE.Vector3(),
+        mousePosition = new THREE.Vector2(),
         plane = new THREE.Mesh(),
 	scene = new THREE.Scene(),
 	luz = new THREE.AmbientLight(0xeeeeee),
@@ -183,6 +184,28 @@
         lines.splice((lines.length-1), 1);
       }
     }
+
+    var spriteMap = new THREE.TextureLoader().load("images/icono.jpg");
+    var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff } );
+    var sprite = new THREE.Sprite( spriteMaterial);
+    scene.add( sprite );
+
+    function canvasClicked(e) {
+            e.preventDefault();
+            
+            if ( e.target == canvas ) {
+            mousePosition.x = ((e.clientX - renderer.domElement.offsetLeft) / window.innerWidth) * 2 - 1;
+            mousePosition.y = -((e.clientY - renderer.domElement.offsetTop) / window.innerHeight) * 2 + 1;
+            var vector = new THREE.Vector3(mousePosition.x, mousePosition.y, 1);
+            vector.unproject(camera);
+            var ray = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());            
+            console.log(ray); 
+            var intersects = ray.intersectObject(plane);
+            sprite.position.set(intersects[0].point.x,intersects[0].point.y,intersects[0].point.z);
+            sprite.visible = true;
+            sprite.updateMatrixWorld();
+        }
+    };
 
     var controls = new THREE.OrbitControls(camera); 
 
